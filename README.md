@@ -1,6 +1,6 @@
 # twitter-integration
 Offline tools for collecting, archiving, and organizing tweets.
-Uses https://pypi.python.org/pypi/twitter.
+Uses https://python-twitter.readthedocs.io/en/latest/
 
 
 ## Python development environment requirements
@@ -19,7 +19,7 @@ Uses https://pypi.python.org/pypi/twitter.
 
 ## Using the Twitter APIs
 
-1. Register app at https://apps.twitter.com/
+1. Follow the instructions at https://python-twitter.readthedocs.io/en/latest/getting_started.html to register a Twitter app.
 2. Under "Keys and Access Tokens," generate Consumer Key and Secret
 3. Copy your consumer key/secret and access key/secret into your own version of the config.py file
 
