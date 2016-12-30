@@ -10,6 +10,7 @@ https://github.com/sixohsix/twitter/blob/master/twitter/stream_example.py
 import argparse
 import logging
 import sys
+from typing import List
 
 import twitter
 import twitter.api
@@ -36,11 +37,12 @@ def ensure_api(auth=None):
             sys.exit(1)
     return TWITTER_API
 
-def get_auth(config):
+def get_auth(config: dict) -> OAuth:
+    """Create OAuth object from provided configuration information."""
     return OAuth(
         config["access_key"], config["access_secret"], config["consumer_key"], config["consumer_secret"])
 
-def handle_tweet(tweet):
+def handle_tweet(tweet) -> None:
     """Print out type of tweet and, if text tweet, the contents."""
     if tweet is None:
         printNicely("-- None --")
@@ -55,8 +57,20 @@ def handle_tweet(tweet):
     else:
         printNicely("-- Some data: " + str(tweet))
 
-def handles_to_ids(handles):
-    """Convert up to 100 Twitter user names to ids."""
+def handles_to_ids(handles: List[str]) -> List[int]:
+    """Convert up to 100 Twitter user names to ids.
+
+    :param handles: list of strings that are twitter handles (do not include '@'
+    :return: list of integers that are twitter ids for provided handles
+    :raise: ValueError if more than 100 handles are provided
+
+    The limit of 100 is an API limit. If necessary, this function
+    can be updated to make requests in batches, but for now, it
+    complains if more than 100 handles are provided.
+    """
+    num_handles = len(handles)
+    if num_handles > 100:
+        raise ValueError("Cannot lookup ids for more than 100 twitter handles.")
     handle_arg = ','.join(handles[0:min(100,len(handles))])
     log.debug("Getting ids for handles: %s", handle_arg)
     user_objs = ensure_api().users.lookup(screen_name=handle_arg)
@@ -64,10 +78,11 @@ def handles_to_ids(handles):
     log.debug("Ids: %s", ids)
     return ids
 
-def listen(user_ids=None, auth=None):
+def listen(user_ids: List[int]=None, auth: OAuth=None) -> None:
     """Connect to Twitter Stream API and listen for tweets from specified users.
     
-    :param user_ids: optional list of ints or strings that are twitter user ids.
+    :param user_ids: optional list of ints or strings that are twitter user ids
+    :param auth: twitter.oauth.OAuth
     """
     stream = TwitterStream(auth=auth, secure=True)
     query_args = {}
@@ -82,15 +97,18 @@ def listen(user_ids=None, auth=None):
     for tweet in tweet_iter:
         handle_tweet(tweet)
 
-def load_config(cfg_filename):
+def load_config(cfg_filename: str) -> dict:
     """"Load our API credentials."""
     log.info("Loading config from %s", cfg_filename)
     config = {}
     exec(open(cfg_filename).read(), config)
     return config
 
-def build_parser():
-    """Construct argument parser for script."""
+def build_parser() -> argparse.ArgumentParser:
+    """Construct argument parser for script.
+
+    :return: ArgumentParser
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--config', default=DEFAULT_CONFIG_FILE,
                         help='Location of config file with auth tokens; default is {0}'.format(
